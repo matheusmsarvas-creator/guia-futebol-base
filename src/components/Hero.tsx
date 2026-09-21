@@ -30,14 +30,10 @@ export default function Hero() {
       <div className="relative mx-auto w-full max-w-sm lg:max-w-none">
         <div aria-hidden className="absolute inset-y-6 -right-4 left-8 rounded-[2rem] bg-sky" />
         <img
-          src="/capa-guia.png"
+          src="/capa-guia.jpg"
           alt="Capa do Guia Alimentar para Famílias de Atletas de Futebol de Base"
-          width={640}
-          height={820}
-          onError={(e) => {
-            // sem capa-guia.png em /public, usa o placeholder
-            if (!e.currentTarget.src.endsWith("capa-placeholder.svg")) e.currentTarget.src = "/capa-placeholder.svg";
-          }}
+          width={1092}
+          height={1440}
           className="relative w-full rounded-xl border border-navy/10"
         />
       </div>
