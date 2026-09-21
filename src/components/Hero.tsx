@@ -1,6 +1,5 @@
 import DownloadButton from "./DownloadButton";
-import { SPOTIFY_URL } from "../lib/config";
-import { events } from "../lib/analytics";
+import SpotifyButton from "./SpotifyButton";
 
 export default function Hero() {
   return (
@@ -21,17 +20,9 @@ export default function Hero() {
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           <DownloadButton location="hero" className="w-full sm:w-auto" />
-          {SPOTIFY_URL && (
-            <a
-              href={SPOTIFY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => events.listenSpotify("hero")}
-              className="inline-flex justify-center rounded-lg px-2 py-3 text-[15px] font-bold text-navy underline decoration-coral decoration-2 underline-offset-4 hover:text-coral-dark"
-            >
-              ou ouça no Spotify
-            </a>
-          )}
+          <SpotifyButton location="hero" className="w-full sm:w-auto">
+            Ouvir o guia
+          </SpotifyButton>
         </div>
         <p className="mt-4 text-sm text-muted">PDF · gratuito · sem cadastro</p>
       </div>
@@ -43,6 +34,10 @@ export default function Hero() {
           alt="Capa do Guia Alimentar para Famílias de Atletas de Futebol de Base"
           width={640}
           height={820}
+          onError={(e) => {
+            // sem capa-guia.png em /public, usa o placeholder
+            if (!e.currentTarget.src.endsWith("capa-placeholder.svg")) e.currentTarget.src = "/capa-placeholder.svg";
+          }}
           className="relative w-full rounded-xl border border-navy/10"
         />
       </div>

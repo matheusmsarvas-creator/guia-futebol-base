@@ -1,6 +1,6 @@
 import { useState } from "react";
 import DownloadButton from "./DownloadButton";
-import { SPOTIFY_URL } from "../lib/config";
+import SpotifyButton from "./SpotifyButton";
 import { events } from "../lib/analytics";
 
 const profiles = [
@@ -26,17 +26,7 @@ export default function CtaSection() {
         </div>
         <div className="flex flex-col gap-3 md:min-w-64">
           <DownloadButton location="cta_section" variant="onDark" />
-          {SPOTIFY_URL && (
-            <a
-              href={SPOTIFY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => events.listenSpotify("cta_section")}
-              className="inline-flex justify-center rounded-lg border-2 border-white/70 px-6 py-3 text-[15px] font-bold hover:bg-white hover:text-navy"
-            >
-              Ouvir no Spotify
-            </a>
-          )}
+          <SpotifyButton location="cta_section" variant="onDark" />
         </div>
       </div>
 
