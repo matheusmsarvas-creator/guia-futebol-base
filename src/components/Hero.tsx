@@ -1,0 +1,51 @@
+import DownloadButton from "./DownloadButton";
+import { SPOTIFY_URL } from "../lib/config";
+import { events } from "../lib/analytics";
+
+export default function Hero() {
+  return (
+    <section id="hero" className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-14 pt-10 sm:px-6 md:pt-16 lg:grid-cols-[1.1fr_.9fr] lg:gap-16">
+      <div>
+        <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.14em] text-navy">
+          <span aria-hidden className="h-[3px] w-8 rounded bg-coral" />
+          Ciência aplicada à rotina
+        </p>
+        <h1 className="mt-5 font-display text-[2.6rem] font-extrabold leading-[1] tracking-tight text-navy sm:text-6xl lg:text-7xl">
+          Guia alimentar para famílias de{" "}
+          <span className="text-coral-dark">atletas de futebol de base</span>
+        </h1>
+        <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+          Informação prática e baseada em ciência para apoiar jovens de 7 a 17 anos a crescer, treinar,
+          recuperar e criar uma relação saudável com a comida.
+        </p>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <DownloadButton location="hero" className="w-full sm:w-auto" />
+          {SPOTIFY_URL && (
+            <a
+              href={SPOTIFY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => events.listenSpotify("hero")}
+              className="inline-flex justify-center rounded-lg px-2 py-3 text-[15px] font-bold text-navy underline decoration-coral decoration-2 underline-offset-4 hover:text-coral-dark"
+            >
+              ou ouça no Spotify
+            </a>
+          )}
+        </div>
+        <p className="mt-4 text-sm text-muted">PDF · gratuito · sem cadastro</p>
+      </div>
+
+      <div className="relative mx-auto w-full max-w-sm lg:max-w-none">
+        <div aria-hidden className="absolute inset-y-6 -right-4 left-8 rounded-[2rem] bg-sky" />
+        <img
+          src="/capa-guia.png"
+          alt="Capa do Guia Alimentar para Famílias de Atletas de Futebol de Base"
+          width={640}
+          height={820}
+          className="relative w-full rounded-xl border border-navy/10"
+        />
+      </div>
+    </section>
+  );
+}
