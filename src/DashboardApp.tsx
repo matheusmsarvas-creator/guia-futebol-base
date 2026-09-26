@@ -29,6 +29,36 @@ function formatDate(yyyymmdd: string) {
   return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
+function useRealtime(token: string | null) {
+  const [totals, setTotals] = useState<Record<string, number> | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+
+    const load = () => {
+      fetch("/api/analytics-realtime", { headers: { "x-dashboard-token": token } })
+        .then((res) => res.json())
+        .then((json) => {
+          if (cancelled || !json.totals) return;
+          setTotals(json.totals);
+          setUpdatedAt(new Date());
+        })
+        .catch(() => {});
+    };
+
+    load();
+    const id = setInterval(load, 15000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [token]);
+
+  return { totals, updatedAt };
+}
+
 function useAnalytics(token: string | null, days: number) {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "unauthorized" | "error">("idle");
@@ -123,6 +153,7 @@ export default function DashboardApp() {
   const [token, setToken] = useState<string | null>(() => sessionStorage.getItem("dashboard_token"));
   const [days, setDays] = useState(30);
   const { data, status } = useAnalytics(token, days);
+  const realtime = useRealtime(token);
 
   const handleLogin = (value: string) => {
     sessionStorage.setItem("dashboard_token", value);
@@ -164,6 +195,28 @@ export default function DashboardApp() {
           </select>
         </label>
       </div>
+
+      {realtime.totals && (
+        <div className="mt-8 rounded-xl border border-line bg-white p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 font-bold text-navy">
+              <span className="inline-block size-2 animate-pulse rounded-full bg-green-500" aria-hidden />
+              Tempo real (últimos 30 min)
+            </h2>
+            {realtime.updatedAt && (
+              <span className="text-xs text-muted">Atualizado às {realtime.updatedAt.toLocaleTimeString("pt-BR")}</span>
+            )}
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            {Object.entries(realtime.totals).map(([name, count]) => (
+              <div key={name} className="text-center">
+                <p className="text-3xl font-extrabold text-navy">{count}</p>
+                <p className="text-xs text-muted">{EVENT_LABELS[name] ?? name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {status === "loading" && <p className="mt-10 text-sm text-muted">Carregando dados da GA4 Data API…</p>}
 
