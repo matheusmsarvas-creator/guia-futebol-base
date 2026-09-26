@@ -175,6 +175,9 @@ export default function DashboardApp() {
           {data?.missing && data.missing.length > 0 && (
             <p className="mt-1 text-sm text-muted">Variáveis faltando: {data.missing.join(", ")}</p>
           )}
+          {data?.detail && (
+            <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-navy/5 p-3 text-xs text-navy">{data.detail}</pre>
+          )}
         </div>
       )}
 
