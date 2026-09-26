@@ -21,7 +21,7 @@ export default function Hero() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           <DownloadButton location="hero" className="w-full sm:w-auto" />
           <SpotifyButton location="hero" className="w-full sm:w-auto">
-            Ouvir o guia
+            Ouvir o guia no Spotify
           </SpotifyButton>
         </div>
         <p className="mt-4 text-sm text-muted">PDF · gratuito · sem cadastro</p>
