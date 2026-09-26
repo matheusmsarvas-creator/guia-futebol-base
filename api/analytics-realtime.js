@@ -83,7 +83,32 @@ export default async function handler(req, res) {
       totals[name] = (totals[name] || 0) + Number(r.metricValues[0].value);
     }
 
-    res.status(200).json({ totals, trackedEvents: TRACKED_EVENTS, windowMinutes: 30 });
+    let profileBreakdown = null;
+    try {
+      const profileReport = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA_PROPERTY_ID}:runRealtimeReport`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dimensions: [{ name: "customEvent:profile" }],
+          metrics: [{ name: "eventCount" }],
+          dimensionFilter: {
+            filter: { fieldName: "eventName", stringFilter: { value: "select_visitor_profile" } },
+          },
+          minuteRanges: [{ startMinutesAgo: 29, endMinutesAgo: 0 }],
+        }),
+      });
+      if (profileReport.ok) {
+        const profileJson = await profileReport.json();
+        profileBreakdown = (profileJson.rows || []).map((r) => ({
+          profile: r.dimensionValues[0].value,
+          count: Number(r.metricValues[0].value),
+        }));
+      }
+    } catch {
+      // dimensão customizada ainda não configurada; ignora silenciosamente
+    }
+
+    res.status(200).json({ totals, trackedEvents: TRACKED_EVENTS, windowMinutes: 30, profileBreakdown });
   } catch (err) {
     res.status(500).json({ error: "Erro ao consultar o Realtime da GA4 Data API.", detail: String(err?.message || err) });
   }

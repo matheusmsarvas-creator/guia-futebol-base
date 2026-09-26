@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 
 type Row = { date: string; eventName: string; count: number };
+type ProfileCount = { profile: string; count: number };
 type ApiResponse = {
   days: number;
   rows: Row[];
   totals: Record<string, number>;
   trackedEvents: string[];
+  profileBreakdown?: ProfileCount[] | null;
   error?: string;
   hint?: string;
   missing?: string[];
@@ -16,6 +18,14 @@ const EVENT_LABELS: Record<string, string> = {
   click_download_ebook: "Download do e-book",
   click_listen_spotify: "Ouvir/baixar áudio (Spotify)",
   select_visitor_profile: "Perfil do visitante selecionado",
+};
+
+const PROFILE_LABELS: Record<string, string> = {
+  familia: "Família",
+  atleta: "Atleta",
+  nutricionista: "Nutricionista / saúde",
+  comissao: "Comissão técnica",
+  outro: "Outro",
 };
 
 const EVENT_COLORS: Record<string, string> = {
@@ -31,6 +41,7 @@ function formatDate(yyyymmdd: string) {
 
 function useRealtime(token: string | null) {
   const [totals, setTotals] = useState<Record<string, number> | null>(null);
+  const [profileBreakdown, setProfileBreakdown] = useState<ProfileCount[] | null>(null);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -43,6 +54,7 @@ function useRealtime(token: string | null) {
         .then((json) => {
           if (cancelled || !json.totals) return;
           setTotals(json.totals);
+          setProfileBreakdown(json.profileBreakdown ?? null);
           setUpdatedAt(new Date());
         })
         .catch(() => {});
@@ -56,7 +68,23 @@ function useRealtime(token: string | null) {
     };
   }, [token]);
 
-  return { totals, updatedAt };
+  return { totals, profileBreakdown, updatedAt };
+}
+
+function ProfileBreakdownList({ items }: { items: ProfileCount[] }) {
+  if (items.length === 0) return null;
+  return (
+    <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+      {items
+        .slice()
+        .sort((a, b) => b.count - a.count)
+        .map((p) => (
+          <li key={p.profile}>
+            {PROFILE_LABELS[p.profile] ?? p.profile}: <strong className="text-navy">{p.count}</strong>
+          </li>
+        ))}
+    </ul>
+  );
 }
 
 function useAnalytics(token: string | null, days: number) {
@@ -215,6 +243,7 @@ export default function DashboardApp() {
               </div>
             ))}
           </div>
+          {realtime.profileBreakdown && <ProfileBreakdownList items={realtime.profileBreakdown} />}
         </div>
       )}
 
@@ -242,6 +271,9 @@ export default function DashboardApp() {
                 <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: EVENT_COLORS[name] }} />
                 <p className="mt-2 text-2xl font-extrabold text-navy">{data.totals[name] ?? 0}</p>
                 <p className="text-sm text-muted">{EVENT_LABELS[name] ?? name}</p>
+                {name === "select_visitor_profile" && data.profileBreakdown && (
+                  <ProfileBreakdownList items={data.profileBreakdown} />
+                )}
               </div>
             ))}
           </div>

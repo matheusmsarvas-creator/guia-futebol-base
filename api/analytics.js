@@ -103,7 +103,35 @@ export default async function handler(req, res) {
       return acc;
     }, {});
 
-    res.status(200).json({ days, rows, totals, trackedEvents: TRACKED_EVENTS });
+    // Quebra por perfil (customEvent:profile). Só funciona depois que a dimensão
+    // customizada "profile" for criada em GA4 Admin > Custom definitions; se ainda
+    // não existir, a GA4 API retorna 400 e simplesmente omitimos essa parte.
+    let profileBreakdown = null;
+    try {
+      const profileReport = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA_PROPERTY_ID}:runReport`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dateRanges: [{ startDate: `${days}daysAgo`, endDate: "today" }],
+          dimensions: [{ name: "customEvent:profile" }],
+          metrics: [{ name: "eventCount" }],
+          dimensionFilter: {
+            filter: { fieldName: "eventName", stringFilter: { value: "select_visitor_profile" } },
+          },
+        }),
+      });
+      if (profileReport.ok) {
+        const profileJson = await profileReport.json();
+        profileBreakdown = (profileJson.rows || []).map((r) => ({
+          profile: r.dimensionValues[0].value,
+          count: Number(r.metricValues[0].value),
+        }));
+      }
+    } catch {
+      // dimensão customizada ainda não configurada; ignora silenciosamente
+    }
+
+    res.status(200).json({ days, rows, totals, trackedEvents: TRACKED_EVENTS, profileBreakdown });
   } catch (err) {
     res.status(500).json({ error: "Erro ao consultar a GA4 Data API.", detail: String(err?.message || err) });
   }
